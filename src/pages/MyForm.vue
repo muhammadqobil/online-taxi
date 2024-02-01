@@ -1,17 +1,48 @@
 <template>
-  <div>
-    <div>
-      <input v-model="from" type="text" placeholder="Choose a nickname" />
-    </div>
-    <br />
-    <div>
-      <button @click="connect" :disabled="connected">Connect</button>
-      <button @click="disconnect" :disabled="!connected">Disconnect</button>
+  <div class="flex justify-center column items-center" style="height: calc(100vh - 60px)">
+    <div v-if="!connected">
+      <div>
+        <q-input v-model="from" type="text" outlined dense placeholder="Choose a nickname" />
+      </div>
+      <br />
+      <div>
+        <q-btn @click="connect" class="q-mx-sm" :disabled="connected">Connect</q-btn>
+        <q-btn @click="disconnect" :disabled="!connected">Disconnect</q-btn>
+      </div>
     </div>
     <br />
     <div v-if="connected">
-      <input v-model="text" type="text" placeholder="Write a message..." />
-      <button @click="sendMessage">Send</button>
+      <q-form
+        @submit.prevent="sendMessage"
+        class="q-gutter-md"
+      >
+        <q-input
+          v-model="text"
+          label="Your name *"
+          outlined
+          dense
+          class="q-pa-md col-xs-12 col-sm-12 col-md-12 col-lg-12"
+          lazy-rules
+          :rules="[ val => val && val.length > 0 || 'Please type something']"
+        />
+
+        <q-input v-model="phone" placeholder="Telefon number"
+                 label="Telefon number"
+                 mask="(##) ### - ## - ##"
+                 fill-mask
+                 unmasked-value
+                 outlined
+                 class="q-pa-md col-xs-12 col-sm-12 col-md-12 col-lg-12" dense
+                 lazy-rules :rules="[val => !!val || this.$t('system.field_is_required')]">
+        </q-input>
+
+
+        <div>
+          <q-btn label="Submit" type="submit" color="primary"/>
+        </div>
+      </q-form>
+<!--      <input v-model="text" type="text" placeholder="Write a message..." />-->
+<!--      <button @click="sendMessage">Send</button>-->
       <p v-for="message in messages" :key="message.id">
         {{ message.from }}: {{ message.text }} ({{ message.time }})
       </p>
