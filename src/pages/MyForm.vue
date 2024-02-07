@@ -17,8 +17,8 @@
         class="q-gutter-md"
       >
         <q-input
-          v-model="text"
-          label="Your name *"
+          v-model="address"
+          label="Manzil kiring"
           outlined
           dense
           class="q-pa-md col-xs-12 col-sm-12 col-md-12 col-lg-12"
@@ -44,7 +44,7 @@
 <!--      <input v-model="text" type="text" placeholder="Write a message..." />-->
 <!--      <button @click="sendMessage">Send</button>-->
       <p v-for="message in messages" :key="message.id">
-        {{ message.from }}: {{ message.text }} ({{ message.time }})
+        {{ message.from }}: {{ message.address }} ({{ message.phone }})
       </p>
     </div>
   </div>
@@ -60,18 +60,20 @@ export default {
   setup() {
     const from = ref('');
     const text = ref('');
+    const address = ref('');
+    const phone = ref('');
     const connected = ref(false);
     const messages = ref([]);
     let stompClient = null;
 
     function connect() {
-      const url = 'http://192.168.12.7:8080/chat'
+      const url = 'http://192.168.12.7:8080/room'
       const socket = new SockJS(url);
       stompClient = Stomp.over(socket);
       stompClient.connect({}, (frame) => {
         connected.value = true;
         console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/messages', (messageOutput) => {
+        stompClient.subscribe('/user/elbek/queue/specific-user', (messageOutput) => {
           showMessageOutput(JSON.parse(messageOutput.body));
         });
       });
@@ -84,12 +86,9 @@ export default {
       console.log('Disconnected');
     };
     function sendMessage() {
-      stompClient.send(
-        '/app/chat',
-        {},
-        JSON.stringify({ from: from.value, text: text.value })
-      );
-      text.value = '';
+      stompClient.send('/app/chat',{},JSON.stringify({ address: address.value, phone: phone.value }));
+      address.value = '';
+      phone.value = '';
     };
     function showMessageOutput(messageOutput) {
       console.log('123=>',messageOutput)
@@ -100,6 +99,8 @@ export default {
       text,
       connected,
       messages,
+      address,
+      phone,
 
       //functions
       connect,

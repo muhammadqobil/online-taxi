@@ -23,18 +23,16 @@
       v-model="leftDrawerOpen"
       show-if-above
       bordered
+      :width="siteWidth"
+      breakpoint="400"
     >
       <q-list>
-        <q-item-label
-          header
-        >
-          Essential Links
-        </q-item-label>
+        <q-item-section class="flex justify-center items-center">
+          <q-icon name="print" class="q-mt-lg" color="teal" size="40px" />
+        </q-item-section>
 
         <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
+          :siteWidth="siteWidth"
         />
       </q-list>
     </q-drawer>
@@ -54,7 +52,7 @@ const linksList = [
     title: 'Docs',
     caption: 'quasar.dev',
     icon: 'school',
-    link: 'https://quasar.dev'
+    link: 'test'
   },
   {
     title: 'Github',
@@ -102,13 +100,24 @@ export default defineComponent({
   },
 
   setup () {
-    const leftDrawerOpen = ref(false)
-
+    const leftDrawerOpen = ref(true)
+    const siteWidth = ref(70)
     return {
       essentialLinks: linksList,
       leftDrawerOpen,
+      siteWidth,
       toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
+        // leftDrawerOpen.value = true
+        if (leftDrawerOpen.value){
+          if (siteWidth.value === 300 ){
+            siteWidth.value = 70
+          }else {
+            siteWidth.value = 300
+          }
+        }else {
+          leftDrawerOpen.value = true
+          siteWidth.value = 300
+        }
       }
     }
   }
