@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar">
     <div class="side-header">
-      <h3>M<span v-if="siteWidth===300">odern</span></h3>
+      <h3>M<span v-if="siteWidth===300">y taxi</span></h3>
     </div>
 
     <div class="side-content">
