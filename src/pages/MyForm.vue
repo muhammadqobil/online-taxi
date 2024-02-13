@@ -17,7 +17,7 @@
         class="q-gutter-md"
       >
         <q-input
-          v-model="address"
+          v-model="phone"
           label="Manzil kiring"
           outlined
           dense
@@ -26,15 +26,15 @@
           :rules="[ val => val && val.length > 0 || 'Please type something']"
         />
 
-        <q-input v-model="phone" placeholder="Telefon number"
-                 label="Telefon number"
-                 mask="(##) ### - ## - ##"
-                 fill-mask
-                 unmasked-value
-                 outlined
-                 class="q-pa-md col-xs-12 col-sm-12 col-md-12 col-lg-12" dense
-                 lazy-rules :rules="[val => !!val || this.$t('system.field_is_required')]">
-        </q-input>
+<!--        <q-input v-model="phone" placeholder="Telefon number"-->
+<!--                 label="Telefon number"-->
+<!--                 mask="(##) ### - ## - ##"-->
+<!--                 fill-mask-->
+<!--                 unmasked-value-->
+<!--                 outlined-->
+<!--                 class="q-pa-md col-xs-12 col-sm-12 col-md-12 col-lg-12" dense-->
+<!--                 lazy-rules :rules="[val => !!val || this.$t('system.field_is_required')]">-->
+<!--        </q-input>-->
 
 
         <div>
@@ -44,7 +44,7 @@
 <!--      <input v-model="text" type="text" placeholder="Write a message..." />-->
 <!--      <button @click="sendMessage">Send</button>-->
       <p v-for="message in messages" :key="message.id">
-        {{ message.from }}: {{ message.address }} ({{ message.phone }})
+        {{ message.from }}: {{ message.text }} ({{ message.time }})
       </p>
     </div>
   </div>
@@ -54,6 +54,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import SockJS from "sockjs-client/dist/sockjs"
 import {Stomp} from '@stomp/stompjs';
+import axios from "axios";
 
 export default {
   name:'MyForm',
@@ -67,13 +68,13 @@ export default {
     let stompClient = null;
 
     function connect() {
-      const url = 'http://192.168.12.7:8080/room'
+      const url = 'http://192.168.12.7:8080/chat'
       const socket = new SockJS(url);
       stompClient = Stomp.over(socket);
       stompClient.connect({}, (frame) => {
         connected.value = true;
         console.log('Connected: ' + frame);
-        stompClient.subscribe('/user/elbek/queue/specific-user', (messageOutput) => {
+        stompClient.subscribe('/topic/messages', (messageOutput) => {
           showMessageOutput(JSON.parse(messageOutput.body));
         });
       });
@@ -86,13 +87,21 @@ export default {
       console.log('Disconnected');
     };
     function sendMessage() {
-      stompClient.send('/app/chat',{},JSON.stringify({ address: address.value, phone: phone.value }));
+      console.log(JSON.stringify({ from: from.value, text: phone.value }))
+      stompClient.send('/app/chat',{},JSON.stringify({ from: from.value, text: phone.value }));
       address.value = '';
       phone.value = '';
     };
     function showMessageOutput(messageOutput) {
       console.log('123=>',messageOutput)
       messages.value.push(messageOutput);
+    };
+    function setOrder() {
+      axios.post('http://192.168.12.7:8080/orders', { location: address.value, phone: phone.value }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
     };
     return {
       from,
@@ -106,7 +115,8 @@ export default {
       connect,
       disconnect,
       sendMessage,
-      showMessageOutput
+      showMessageOutput,
+      setOrder
     };
   },
 };

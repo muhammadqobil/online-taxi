@@ -17,6 +17,8 @@
     "@stomp/stompjs": "^7.0.0",
     "@types/sockjs-client": "^1.5.4",
     "axios": "^1.6.7",
+    "leaflet": "^1.9.4",
+    "leaflet-routing-machine": "^3.2.12",
     "pinia": "^2.0.11",
     "quasar": "^2.8.0",
     "sockjs-client": "^1.6.1",
