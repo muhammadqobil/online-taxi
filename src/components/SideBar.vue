@@ -10,102 +10,57 @@
 <!--        <h4>David Green</h4>-->
 <!--        <small>Art Director</small>-->
 <!--      </div>-->
-
-      <div class="side-menu">
-        <ul>
-          <li>
-            <a href="" class="active">
-              <span>
-                <q-icon name="mdi-home" size="md"/>
-              </span>
-              <small v-if="siteWidth === 300">Dashboard</small>
-            </a>
-          </li>
-          <li>
-            <a href="">
-              <span class="las la-user-alt"></span>
-              <small>Profile</small>
-            </a>
-          </li>
-          <li>
-            <a href="">
-              <span class="las la-envelope"></span>
-              <small>Mailbox</small>
-            </a>
-          </li>
-          <li>
-            <a href="">
-              <span class="las la-clipboard-list"></span>
-              <small>Projects</small>
-            </a>
-          </li>
-          <li>
-            <a href="">
-              <span class="las la-shopping-cart"></span>
-              <small>Orders</small>
-            </a>
-          </li>
-          <li>
-            <a href="">
-              <span class="las la-tasks"></span>
-              <small>Tasks</small>
-            </a>
-          </li>
-
-        </ul>
-      </div>
+      <q-expansion-item
+        v-for="(category,index) in piniaGetters().getUserCategories"
+        :key="index"
+        group="somegroup"
+        icon="perm_identity"
+        label="Second"
+        :label-lines="1"
+        :caption-lines="3"
+        header-class="text-primary text-bold"
+        expand-separator
+        class="relative-position overflow-hidden"
+        style="z-index: 99;background: rgba(255, 251, 231, 1);"
+        >
+        <q-item
+          v-for="(module,index1) in category.children"
+          :key="index1"
+          :to="category.path+'/'+module.path"
+          clickable
+          v-ripple
+          :active="piniaGetters().getCurrentRouteName === module.name"
+          active-class="text-primary text-italic text-bold shadow-2"
+          style="background: rgba(255, 251, 231, 0.1); padding-left: 30px !important;"
+          class="q-pl-md text-primary"
+        >
+          <q-item-section avatar class="q-pl-md q-pr-none">
+            <q-icon :name="module.meta.icon"/>
+          </q-item-section>
+          <q-item-section class="q-pl-none">{{$t(module.meta.title)}}</q-item-section>
+        </q-item>
+      </q-expansion-item>
     </div>
   </div>
-<!--  <q-item-->
-<!--    clickable-->
-<!--    tag="a"-->
-<!--    :active="link === 'test'"-->
-<!--    @click="link === 'test'"-->
-<!--    active-class="border"-->
-
-<!--  >-->
-<!--    <q-item-section-->
-<!--      v-if="icon"-->
-<!--      avatar-->
-<!--    >-->
-<!--      <q-icon :name="icon" />-->
-<!--    </q-item-section>-->
-<!--    <q-item-section v-if="siteWidth === 300">-->
-<!--      <q-item-label>{{ title }}</q-item-label>-->
-<!--      <q-item-label caption>{{ caption }}</q-item-label>-->
-<!--    </q-item-section>-->
-<!--  </q-item>-->
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import {defineComponent, watch} from 'vue'
+import {piniaGetters} from "stores/piniaGetters";
 
 export default defineComponent({
-  name: 'EssentialLink',
+  name: 'SideBar',
   props: {
-    title: {
-      type: String,
-      required: true
-    },
-
-    caption: {
-      type: String,
-      default: ''
-    },
-
-    link: {
-      type: String,
-      default: '#'
-    },
-
-    icon: {
-      type: String,
-      default: ''
-    },
     siteWidth:{
       type:Number
     }
-  }
+  },
+  setup(){
+    const {getUserCategories,getCurrentRouteName} = piniaGetters();
+    return{
+      piniaGetters
+    }
+  },
 })
 </script>
 
@@ -118,8 +73,8 @@ export default defineComponent({
     box-sizing: border-box;
     font-family: 'Merriweather', sans-serif;
   }
-  $main-color: #22BAA0;
-  $color-dark: #34425A;
+  $main-color: #EDAE10;
+  $color-dark: #fff;
   $text-grey: #B0B0B0;
   .sidebar {
     position: fixed;

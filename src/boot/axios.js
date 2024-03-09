@@ -1,24 +1,100 @@
-import { boot } from 'quasar/wrappers'
-import axios from 'axios'
+import { boot } from 'quasar/wrappers';
+import axios from 'axios';
+import { i18n } from './i18n';
+import { piniaActions } from 'src/stores/piniaActions';
+import { piniaState } from 'src/stores/piniaState';
+import { cfghttp } from 'src/utils/constants';
 
-// Be careful when using SSR for cross-request state pollution
-// due to creating a Singleton instance here;
-// If any client changes this (global) instance, it might be a
-// good idea to move this instance creation inside of the
-// "export default () => {}" function below (which runs individually
-// for each client)
-const api = axios.create({ baseURL: 'https://api.example.com' })
+console.log(piniaActions())
 
-export default boot(({ app }) => {
-  // for use inside Vue files (Options API) through this.$axios and this.$api
+const {decrementAjaxRequestsCnt, incrementAjaxRequestsCnt,clearUserSession} = piniaActions();
+const {lang_code, user} = piniaState();
 
-  app.config.globalProperties.$axios = axios
-  // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)
-  //       so you won't necessarily have to import axios in each vue file
+let $axios = axios;
 
-  app.config.globalProperties.$api = api
-  // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
-  //       so you can easily perform requests against your app's API
-})
+export default boot(({ app, router }) => {
 
-export { api }
+
+  axios.defaults.withCredentials = true;
+  axios.defaults.baseURL = cfghttp.BASE_URL;
+  axios.defaults.timeout = cfghttp.BASE_TIMEOUT;
+
+  axios.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      decrementAjaxRequestsCnt();
+      // console.log(error.response.status)
+      if (!error.response) {
+        return Promise.reject({
+          type: "warning",
+          errorCode: -200,
+          errorDescription: "",
+          errorMessage: i18n.global.t("http.base_error"),
+        });
+      }
+      if (!error.response.data) {
+        return Promise.reject({
+          type: "warning",
+          errorCode: -200,
+          errorDescription: "",
+          errorMessage: i18n.global.t("http.base_error"),
+        });
+      }
+      if (error.response.status === 401) {
+        return Promise.reject({
+          type: "warning",
+          errorCode: 401,
+          errorDescription: "",
+          errorMessage: i18n.global.t("http.session_timeout"),
+        });
+      }
+      if (error.response.status === 403) {
+        clearUserSession();
+        router.replace("/login");
+        return Promise.reject({
+          type: "warning",
+          errorCode: error.response.data.ERROR.code,
+          errorDescription: error.response.data.ERROR.description,
+          errorMessage: error.response.data.ERROR.message,
+        });
+      }
+      if (error.response.status === 404) {
+        return Promise.reject({
+          type: "warning",
+          errorCode: error.response.status,
+          errorDescription: i18n.global.t("modules.errormessages"),
+          errorMessage: i18n.global.t("fp_captions.l_error_description"),
+        });
+      }
+      return Promise.reject({
+        type: "error",
+        errorCode: error.response.data?.ERROR?.code,
+        errorDescription: error.response.data?.ERROR?.description,
+        errorMessage: error.response.data?.ERROR?.message,
+      });
+    }
+  );
+  axios.interceptors.request.use(
+    function (request) {
+      if (user !== null) {
+        request.headers.Authorization = `Bearer ${user.token}`;
+      }
+
+      request.headers["Language"] = lang_code;
+      incrementAjaxRequestsCnt();
+      return request;
+    },
+    function (error) {
+      return Promise.reject(error);
+    }
+  );
+
+  app.config.globalProperties.$axios = axios;
+
+  $axios = axios;
+
+});
+
+export { $axios };

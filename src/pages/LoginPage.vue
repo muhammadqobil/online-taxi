@@ -1,12 +1,16 @@
 <template>
-  <div>
-    <h1>Login</h1>
-  </div>
+  <q-page class="row justify-center items-center no-padding no-border">
+    <q-card class="flex fit justify-center no-border no-margin no-shadow">
+      <sign-in/>
+    </q-card>
+  </q-page>
 </template>
 
 <script>
+import SignIn from "components/login/SignIn.vue";
 export default {
-  name: "LoginPage"
+  name: "LoginPage",
+  components: {SignIn},
 }
 </script>
 

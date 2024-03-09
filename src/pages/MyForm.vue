@@ -68,7 +68,7 @@ export default {
     let stompClient = null;
 
     function connect() {
-      const url = 'http://192.168.12.7:8080/chat'
+      const url = 'http://localhost:8081/chat'
       const socket = new SockJS(url);
       stompClient = Stomp.over(socket);
       stompClient.connect({}, (frame) => {
