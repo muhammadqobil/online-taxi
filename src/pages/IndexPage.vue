@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
 import MyForm from "pages/MyForm.vue";
 
 export default {

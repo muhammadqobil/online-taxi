@@ -1,23 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated style="height: 60px;">
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
-
-        <q-toolbar-title>
-          Quasar App
-        </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
-      </q-toolbar>
-    </q-header>
+    <base-header :siteWidth="siteWidth" @setSiteBarWidth="setEmitValue" :leftDrawerOpen="leftDrawerOpen"/>
 
     <q-drawer
       v-model="leftDrawerOpen"
@@ -45,34 +28,29 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import SideBar from 'components/SideBar.vue'
+import BaseHeader from "components/base/BaseHeader.vue";
 
 
 export default defineComponent({
   name: 'MainLayout',
 
   components: {
+    BaseHeader,
     SideBar
   },
 
   setup () {
     const leftDrawerOpen = ref(true)
     const siteWidth = ref(70)
+    const setEmitValue = (e) =>{
+      console.log(e)
+      leftDrawerOpen.value = e.leftDrawerOpen;
+      siteWidth.value = e.siteWidth;
+    }
     return {
-      leftDrawerOpen,
       siteWidth,
-      toggleLeftDrawer () {
-        // leftDrawerOpen.value = true
-        if (leftDrawerOpen.value){
-          if (siteWidth.value === 300 ){
-            siteWidth.value = 70
-          }else {
-            siteWidth.value = 300
-          }
-        }else {
-          leftDrawerOpen.value = true
-          siteWidth.value = 300
-        }
-      }
+      leftDrawerOpen,
+      setEmitValue
     }
   }
 })

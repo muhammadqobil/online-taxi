@@ -1,7 +1,7 @@
 export const cfghttp = {
-  BASE_URL:
-    process.env.NODE_ENV === "production" ? "api" : "http://localhost:8081/api/v1",
-  // BASE_URL: 'http://92.51.38.123:8081/api/v1',
+  // BASE_URL:
+  //   process.env.NODE_ENV === "production" ? "api" : "http://localhost:8081/api/v1",
+  BASE_URL: 'http://92.51.38.123:8081/api/v1',
   BASE_TIMEOUT: 10 * 60 * 1000,
   UPLOAD_TIMEOUT: 2 * 60 * 1000,
   EXCEL_TIMEOUT: 10 * 60 * 1000,

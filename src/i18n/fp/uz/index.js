@@ -1,6 +1,6 @@
 export default {
   "SiteContent": "Sayt mazmuni",
-  "app_name": "New version",
+  "app_name": "Onlayn taksi",
   "fp_captions": {
     "l_position_name": "Lavozim",
     "l_elements": "Elementlar",

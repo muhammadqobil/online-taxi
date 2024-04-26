@@ -21,7 +21,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import useComp from "src/composables/mixins";
 import { defineComponent } from "vue";
 export default defineComponent({

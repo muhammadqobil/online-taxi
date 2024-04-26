@@ -1,6 +1,6 @@
 export default {
   "SiteContent": "Sayt mazmuni",
-  "app_name": "New version",
+  "app_name": "Онлайн такси",
   "fp_captions": {
     "l_position_name": "Лавозим",
     "l_elements": "Элементлар",

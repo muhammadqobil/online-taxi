@@ -1,6 +1,6 @@
 export default {
   "SiteContent": "Sayt mazmuni",
-  "app_name": "New version",
+  "app_name": "Online taxi",
   "fp_captions": {
     "l_position_name": "Position"
   },

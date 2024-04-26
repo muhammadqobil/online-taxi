@@ -162,7 +162,7 @@ export default defineComponent({
       tab,
       bean,
       viewPsw,
-      onSubmit
+      onSubmit,
     }
   }
 })

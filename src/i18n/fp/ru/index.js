@@ -1,6 +1,6 @@
 export default {
   "SiteContent": "Sayt mazmuni",
-  "app_name": "new version",
+  "app_name": "Онлайн такси",
   "fp_captions": {
     "l_position_name": "Позиция ",
     "l_upload_img": "Загрузить изображение",
