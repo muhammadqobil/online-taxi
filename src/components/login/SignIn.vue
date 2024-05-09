@@ -147,7 +147,6 @@ export default defineComponent({
           router.replace(getPath)
         } else {
           router.replace('/home');
-
         }
       } ).catch((error)=>{
         showError(error)
