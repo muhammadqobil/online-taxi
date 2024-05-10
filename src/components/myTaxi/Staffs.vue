@@ -307,10 +307,9 @@ export default defineComponent({
     }
 
     function rowAdd(row) {
-      // $q.notify({
-      //   message:'rowAdd worked'
-      // })
-      formDialog.value = true;
+      [bean.value, formDialog.value] = Object.values(
+        standartTable.rowAdd(beanDefault.value)
+      );
     }
 
 
