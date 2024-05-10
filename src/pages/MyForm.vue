@@ -1,125 +1,215 @@
 <template>
-  <div class="flex justify-center column items-center" style="height: calc(100vh - 60px)">
-    <div v-if="!connected">
-      <div>
-        <q-input v-model="from" type="text" outlined dense placeholder="Choose a nickname" />
-      </div>
-      <br />
-      <div>
-        <q-btn @click="connect" class="q-mx-sm" :disabled="connected">Connect</q-btn>
-        <q-btn @click="disconnect" :disabled="!connected">Disconnect</q-btn>
-      </div>
-    </div>
-    <br />
-    <div v-if="connected">
-      <q-form
-        @submit.prevent="sendMessage"
-        class="q-gutter-md"
-      >
+  <q-page class="q-mt-md">
+
+    <q-card class="q-mb-md">
+      <q-card-section>
+        <h1>Subscribe</h1>
+        <q-form @submit="doSubscribe">
+          <q-input v-model="subscription.topic" label="Topic"></q-input>
+          <q-select
+            v-model="subscription.qos"
+            :options="qosList"
+            label="QoS"
+          ></q-select>
+          <q-btn
+            type="submit"
+            color="primary"
+          >
+            {{ subscribeSuccess ? "Subscribed" : "Subscribe" }}
+          </q-btn>
+          <q-btn
+            v-if="subscribeSuccess"
+            color="primary"
+            @click="doUnSubscribe"
+          >
+            Unsubscribe
+          </q-btn>
+        </q-form>
+      </q-card-section>
+    </q-card>
+
+    <q-card class="q-mb-md">
+      <q-card-section>
+        <h1>Publish</h1>
+        <q-form @submit="doPublish">
+          <q-input v-model="publish.topic" label="Topic"></q-input>
+          <q-input v-model="publish.payload" label="Payload"></q-input>
+          <q-select v-model="publish.qos" :options="qosList" label="QoS"></q-select>
+          <q-btn type="submit" color="primary">
+            Publish
+          </q-btn>
+        </q-form>
+      </q-card-section>
+    </q-card>
+    <q-card class="q-mb-md">
+      <q-card-section>
+        <h1>Receive</h1>
         <q-input
-          v-model="phone"
-          label="Manzil kiring"
-          outlined
-          dense
-          class="q-pa-md col-xs-12 col-sm-12 col-md-12 col-lg-12"
-          lazy-rules
-          :rules="[ val => val && val.length > 0 || 'Please type something']"
-        />
-
-<!--        <q-input v-model="phone" placeholder="Telefon number"-->
-<!--                 label="Telefon number"-->
-<!--                 mask="(##) ### - ## - ##"-->
-<!--                 fill-mask-->
-<!--                 unmasked-value-->
-<!--                 outlined-->
-<!--                 class="q-pa-md col-xs-12 col-sm-12 col-md-12 col-lg-12" dense-->
-<!--                 lazy-rules :rules="[val => !!val || this.$t('system.field_is_required')]">-->
-<!--        </q-input>-->
-
-
-        <div>
-          <q-btn label="Submit" type="submit" color="primary"/>
-        </div>
-      </q-form>
-<!--      <input v-model="text" type="text" placeholder="Write a message..." />-->
-<!--      <button @click="sendMessage">Send</button>-->
-      <p v-for="message in messages" :key="message.id">
-        {{ message.from }}: {{ message.text }} ({{ message.time }})
-      </p>
-    </div>
-  </div>
+          v-model="receiveNews"
+          label="Received Messages"
+          type="textarea"
+          :rows="3"
+          readonly
+        ></q-input>
+      </q-card-section>
+    </q-card>
+  </q-page>
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue';
-import SockJS from "sockjs-client/dist/sockjs"
-import {Stomp} from '@stomp/stompjs';
-import axios from "axios";
+import { ref, reactive, onMounted, defineComponent } from 'vue';
+import mqtt from "mqtt";
 
-export default {
-  name:'MyForm',
-  setup() {
-    const from = ref('');
-    const text = ref('');
-    const address = ref('');
-    const phone = ref('');
-    const connected = ref(false);
-    const messages = ref([]);
-    let stompClient = null;
+export default defineComponent({
+  name: 'MyForm',
+  setup(){
+    const connection = ref({
+      protocol: 'ws',
+      host: '91.227.40.29',
+      port: 8083,
+      endpoint: '/mqtt',
+      clean: true,
+      connectTimeout: 30 * 1000,
+      reconnectPeriod: 4000,
+      clientId: `emqx_vue_${Math.random().toString(16).substring(2, 8)}`,
+      username: 'emqx_test',
+      password: 'emqx_test',
+    });
 
-    function connect() {
-      const url = 'http://localhost:8081/chat'
-      const socket = new SockJS(url);
-      stompClient = Stomp.over(socket);
-      stompClient.connect({}, (frame) => {
-        connected.value = true;
-        console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/messages', (messageOutput) => {
-          showMessageOutput(JSON.parse(messageOutput.body));
-        });
+    const subscription = ref({
+      topic: 'topic/mqttx',
+      qos: 0,
+    });
+
+    const publish = ref({
+      topic: 'taksi',
+      qos: 0,
+      payload: 'nima',
+    });
+
+    const receiveNews = ref('');
+    const qosList = [0, 1, 2];
+    const client = ref({ connected: false });
+    const subscribeSuccess = ref(false);
+    const connecting = ref(false);
+    let retryTimes = 0;
+
+    const handleOnReConnect = () => {
+      retryTimes++;
+      if (retryTimes > 5) {
+        try {
+          initData();
+          console.error('Connection maxReconnectTimes limit, stop retry');
+        } catch (error) {
+          console.error(error.toString());
+        }
+      }
+    };
+
+    const initData = () => {
+      client.value = { connected: false };
+      retryTimes = 0;
+      connecting.value = false;
+      subscribeSuccess.value = false;
+    };
+
+    const createConnection = () => {
+      try {
+        connecting.value = true;
+        const { protocol, host, port, endpoint, ...options } = connection.value;
+        console.log(options)
+        const connectUrl = `ws://91.227.40.29:8083/mqtt`;
+        client.value = mqtt.connect(connectUrl, options);
+        if (client.value.on) {
+          client.value.on('connect', () => {
+            connecting.value = false;
+
+            client.value.subscribe("taksi", (err) => {
+              if (!err) {
+                client.value.publish("taksi", "Hello mqtt nima gap");
+              }
+            });
+            console.log('Connection succeeded!');
+          });
+
+          // client.value.on('reconnect', handleOnReConnect);
+          client.value.on('error', error => {
+            console.log('Connection failed', error);
+          });
+          client.value.on('message', (topic, message) => {
+            receiveNews.value = receiveNews.value.concat(message);
+            console.log(`Received message ${message} from topic ${topic}`);
+          });
+        }
+      } catch (error) {
+        connecting.value = false;
+        console.log('mqtt.connect error', error);
+      }
+    };
+
+    const doSubscribe = () => {
+      const { topic, qos } = subscription.value;
+      client.value.subscribe(topic, { qos }, (error, res) => {
+        if (error) {
+          console.log('Subscribe to topics error', error);
+          return;
+        }
+        subscribeSuccess.value = true;
+        console.log('Subscribe to topics res', res);
       });
     };
-    function disconnect() {
-      if (stompClient !== null) {
-          stompClient.disconnect();
-      }
-      connected.value = false;
-      console.log('Disconnected');
-    };
-    function sendMessage() {
-      console.log(JSON.stringify({ from: from.value, text: phone.value }))
-      stompClient.send('/app/chat',{},JSON.stringify({ from: from.value, text: phone.value }));
-      address.value = '';
-      phone.value = '';
-    };
-    function showMessageOutput(messageOutput) {
-      console.log('123=>',messageOutput)
-      messages.value.push(messageOutput);
-    };
-    function setOrder() {
-      axios.post('http://192.168.12.7:8080/orders', { location: address.value, phone: phone.value }, {
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-    };
-    return {
-      from,
-      text,
-      connected,
-      messages,
-      address,
-      phone,
 
-      //functions
-      connect,
-      disconnect,
-      sendMessage,
-      showMessageOutput,
-      setOrder
+    const doUnSubscribe = () => {
+      const { topic } = subscription.value;
+      client.value.unsubscribe(topic, error => {
+        if (error) {
+          console.log('Unsubscribe error', error);
+        }
+      });
     };
-  },
-};
+
+    const doPublish = () => {
+      const { topic, qos, payload } = publish.value;
+      client.value.publish(topic, payload, { qos }, error => {
+        if (error) {
+          console.log('Publish error', error);
+        }
+      });
+    };
+
+    const destroyConnection = () => {
+      if (client.value.connected) {
+        try {
+          client.value.end(false, () => {
+            initData();
+            console.log('Successfully disconnected!');
+          });
+        } catch (error) {
+          console.log('Disconnect failed', error.toString());
+        }
+      }
+    };
+
+
+    onMounted(createConnection);
+
+    return {
+      connection,
+      subscription,
+      publish,
+      receiveNews,
+      qosList,
+      client,
+      subscribeSuccess,
+      connecting,
+      createConnection,
+      doSubscribe,
+      doUnSubscribe,
+      doPublish,
+      destroyConnection,
+    };
+  }
+})
 </script>
 
 <style scoped>

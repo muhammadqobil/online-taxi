@@ -53,9 +53,10 @@ module.exports = configure(function (/* ctx */) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       target: {
-        browser: [ 'es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1' ],
+        browser: ['chrome89', 'edge89', 'firefox80', 'safari14' ],
         node: 'node20'
       },
+      transpileDependencies: ['mqtt'],
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       // vueRouterBase,
