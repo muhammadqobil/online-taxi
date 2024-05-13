@@ -13,7 +13,10 @@
       <q-toolbar-title>
         {{$t('app_name')}}
       </q-toolbar-title>
-
+      <div class="flex justify-center items-center column date-container q-mx-sm">
+        <div class="text-bold">{{$dateutil.formatDate(new Date(), "DD.MM.YYYY")}}</div>
+        <div class="text-bold">{{currentTime}}</div>
+      </div>
       <q-select
         v-model="language"
         :options="languages"
@@ -58,7 +61,7 @@
 </template>
 
 <script>
-import {computed, defineComponent, ref} from "vue";
+import {computed, defineComponent, onMounted, ref} from "vue";
 import useComp from "src/composables/mixins";
 import {useRouter} from "vue-router";
 import {piniaActions} from "stores/piniaActions";
@@ -127,17 +130,47 @@ export default defineComponent({
         //   });
       }
     })
-    const  languages = computed(()=> piniaState().appLocales)
+    const  languages = computed(()=> piniaState().appLocales);
+    const currentTime = ref('') ;
+    const time = () =>{
+      const d = new Date();
+      let hours = d.getHours();
+      let minutes = d.getMinutes();
+      let seconds = d.getSeconds();
+
+      if (hours < 10){
+        hours = '0'+hours
+      }
+      if (minutes < 10){
+        minutes = '0'+minutes
+      }
+      if (seconds < 10){
+        seconds = '0'+seconds
+      }
+      currentTime.value = hours + ':' + minutes + ':' + seconds
+      return currentTime;
+    }
+
+    onMounted(()=>{
+      setInterval(()=>{
+        time();
+      },1000);
+    })
     return {
       toggleLeftDrawer,
       logout,
       languages,
-      language
+      language,
+      currentTime
     }
   }
 })
 </script>
 
 <style scoped>
-
+.date-container{
+  border: 1.5px solid #f3f2f2;
+  padding:5px 10px;
+  border-radius: 3px;
+}
 </style>

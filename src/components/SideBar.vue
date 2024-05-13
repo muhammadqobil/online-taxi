@@ -65,14 +65,6 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss" >
-  * {
-    margin: 0;
-    padding: 0;
-    text-decoration: none;
-    list-style-type: none;
-    box-sizing: border-box;
-    font-family: 'Merriweather', sans-serif;
-  }
   $main-color: #EDAE10;
   $color-dark: #fff;
   $text-grey: #B0B0B0;
