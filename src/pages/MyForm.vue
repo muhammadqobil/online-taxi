@@ -125,9 +125,7 @@ export default defineComponent({
             connecting.value = false;
 
             client.value.subscribe("taksi", (err) => {
-              if (!err) {
-                client.value.publish("taksi", "Hello mqtt nima gap");
-              }
+
             });
             console.log('Connection succeeded!');
           });
