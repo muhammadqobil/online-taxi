@@ -14,8 +14,8 @@
         {{$t('app_name')}}
       </q-toolbar-title>
       <div class="flex justify-center items-center column date-container q-mx-sm">
-        <div class="text-bold">{{$dateutil.formatDate(new Date(), "DD.MM.YYYY")}}</div>
         <div class="text-bold">{{currentTime}}</div>
+        <div class="text-bold">{{$dateutil.formatDate(new Date(), "DD.MM.YYYY")}}</div>
       </div>
       <q-select
         v-model="language"
